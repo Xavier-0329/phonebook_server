@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const morgan = require("morgan");
+// const morgan = require("morgan");
 const cors = require("cors");
 require("dotenv").config();
 const errorHandler = require("./middleware/errorHandler");
@@ -8,7 +8,7 @@ const errorHandler = require("./middleware/errorHandler");
 
 
 app.use(cors());
-app.use(morgan("tiny"));
+// app.use(morgan("tiny"));
 
 app.use(express.static("dist"));
 
@@ -45,7 +45,7 @@ app.delete("/api/persons/:id", (request, response, next) => {
   .catch(error => next(error))
 });
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   const body = request.body;
 
   Phonebook.find({}).then((persons) => {
@@ -61,7 +61,8 @@ app.post("/api/persons", (request, response) => {
 
       person.save().then((result) => {
         response.json(result);
-      });
+      })
+      .catch(error => next(error))
     }
   });
 });
