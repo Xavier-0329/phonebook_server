@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const morgan = require("morgan");
 const cors = require("cors");
+require('dotenv').config()
 
 app.use(cors());
 app.use(morgan("tiny"));
@@ -10,45 +11,20 @@ app.use(express.static('dist'))
 
 app.use(express.json());
 
-let persons = [
-  {
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-    id: "1",
-  },
-  {
-    name: "Dan Abramov",
-    number: "12-43-234345",
-    id: "2",
-  },
-  {
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-    id: "3",
-  },
-  {
-    id: "4",
-    name: "Xavier Lee",
-    number: "1234577",
-  },
-];
+const Phonebook = require("./models/phonebook");
 
-app.get("/", (request, response) => {
-  response.send("<h1>Hello World!</h1>");
-});
 
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  Phonebook.find({}).then((result) => {
+    response.json(result);
+  });
 });
 
 app.get("/api/persons/:id", (request, response) => {
   const id = request.params.id;
-  const person = persons.find((p) => p.id === id);
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  Phonebook.findById(id).then((result) => {
+    response.json(result);
+  })
 });
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -59,15 +35,21 @@ app.delete("/api/persons/:id", (request, response) => {
 
 app.post("/api/persons", (request, response) => {
   const body = request.body;
-  if (persons.find((p) => p.name === body.name)) {
+  
+  Phonebook.find({}).then((persons) => {if (persons.find((p) => p.name === body.name)) {
     return response.status(400).json({
       error: "name must be unique",
     });
   } else {
-    body.id = Math.floor(Math.random() * 10000000000);
-    response.json(body);
-    persons = persons.concat(body);
-  }
+    const person = new Phonebook({
+      name: body.name,
+      number: body.number,
+    })
+
+    person.save().then((result) => {
+      response.json(result);
+    })
+  }})
 });
 
 app.get("/info", (request, response) => {
